@@ -44,8 +44,9 @@ endif ()
 if (NOT APPLE)
     add_library(sc2renderer ${sources_renderer})
     set_target_properties(sc2renderer PROPERTIES DEBUG_POSTFIX "d")
-    target_link_libraries(sc2renderer SDL2-static)
+    target_link_libraries(sc2renderer SDL2-static sc2api sc2lib sc2utils)
     include_directories("../contrib/SDL-mirror/include")
+
 endif ()
 
 # It requires includes to civetweb and our own headers.
@@ -92,3 +93,11 @@ endif (WIN32)
 
 target_link_libraries(sc2api sc2protocol c-library)
 target_link_libraries(sc2lib sc2api)
+
+
+
+
+#humanController
+add_executable(humanController "controller/human_controller.cc")
+set_target_properties(humanController PROPERTIES FOLDER examples)
+target_link_libraries(humanController sc2api sc2lib sc2utils sc2renderer SDL2_image SDL2_ttf)
