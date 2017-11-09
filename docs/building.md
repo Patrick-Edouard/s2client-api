@@ -5,7 +5,9 @@ CMake
 1. Download and install [CMake](https://cmake.org/download/).
 2. Add CMake to your path if the installer didn't add it for you.
 
-Or us your package manager ..
+Or use your package manager ..
+
+There is also a need of the development packages of SD2, SDL2_Image. And gcc / clang ofc.
 
 
 Building
