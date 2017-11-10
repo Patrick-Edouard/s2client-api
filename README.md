@@ -1,3 +1,16 @@
+s2headful
+============
+
+This is a fork of s2client-api with for goal making people able to play against their bots, watch their bot playing, ... under linux by using a really simple (and still incomplete) SDL front end.
+
+
+Quick installation guide here :
+
+https://github.com/Patrick-Edouard/s2client-api/blob/master/docs/building.md
+
+
+
+
 s2client-api
 ============
 
@@ -48,13 +61,7 @@ You can find a detailed tutorial on what this code does in docs/tutorial1.md.
 Building
 --------
 
-This library uses [CMake](https://cmake.org/download/) to generate project files. It builds with [Visual Studio](https://www.visualstudio.com/downloads/) on Windows and Makefiles on the other platforms. It relies on the following contrib packages. 
-
-1. Civetweb
-2. Protobuf
-3. (optional) SDL
-
-Follow the instructions for submodules and building in [docs/building.md](docs/building.md).
+https://github.com/Patrick-Edouard/s2client-api/blob/master/docs/building.md
 
 Coding Standard
 ---------------
