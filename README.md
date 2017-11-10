@@ -6,8 +6,10 @@ This is a fork of s2client-api with for goal making people able to play against 
 
 Quick installation guide here :
 
-https://github.com/Patrick-Edouard/s2client-api/blob/master/docs/building.md
+[Building](https://github.com/Patrick-Edouard/s2client-api/blob/master/docs/building.md)
 
+
+![alt text](https://i.imgur.com/rH55II3.png)
 
 
 
@@ -61,7 +63,7 @@ You can find a detailed tutorial on what this code does in docs/tutorial1.md.
 Building
 --------
 
-https://github.com/Patrick-Edouard/s2client-api/blob/master/docs/building.md
+[Building](https://github.com/Patrick-Edouard/s2client-api/blob/master/docs/building.md)
 
 Coding Standard
 ---------------

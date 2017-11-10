@@ -12,9 +12,13 @@
 #include <map>
 #include <iostream>
 
+#include <unistd.h>
+#define GetCurrentDir getcwd
+
 namespace {
 
-    const char *const texture_forlder = "/home/patrick-edouard/Projects/s2client-api/textures/";
+    char cCurrentPath[FILENAME_MAX];
+    const std::string texture_folder = std::string(GetCurrentDir(cCurrentPath, sizeof(cCurrentPath))) + "/textures/";
 
     const char *const texture_extention = ".png";
 
@@ -43,6 +47,8 @@ namespace sc2 {
     namespace renderer {
 
         void Initialize(const char *title, int x, int y, int w, int h, unsigned int flags) {
+            std::cout<<"Texture folder : "<<texture_folder<<std::endl;
+
             int init_result = SDL_Init(SDL_INIT_VIDEO);
             assert(!init_result);
 
@@ -197,7 +203,7 @@ namespace sc2 {
             }
 
             SDL_Surface *unit_image;
-            std::string unit_image_path = texture_forlder + unit_name + texture_extention;
+            std::string unit_image_path = texture_folder + unit_name + texture_extention;
             unit_image = IMG_Load(unit_image_path.c_str());
             unit_texture = SDL_CreateTextureFromSurface(renderer_, unit_image);
             SDL_FreeSurface(unit_image);
@@ -265,8 +271,8 @@ namespace sc2 {
                     SDL_Rect source_texture = {sub_texture_index, 0, texture_w, texture_h};
                     SDL_Rect on_screen_texture = {camera.x, camera.y, on_screen_w, on_screen_h};
 
-                    std::cout<<"cam"<<camera_pos->x<<"unit"<<unit->pos.x<<"onscreenpos"<<unit->pos.x-camera_pos->x<<std::endl;
-                    std::cout<<"world to cam"<<camera.x<<"unit"<<unit->pos.x<<"onscreenpos"<<unit->pos.x-camera.x<<std::endl;
+                    //std::cout<<"cam"<<camera_pos->x<<"unit"<<unit->pos.x<<"onscreenpos"<<unit->pos.x-camera_pos->x<<std::endl;
+                    //std::cout<<"world to cam"<<camera.x<<"unit"<<unit->pos.x<<"onscreenpos"<<unit->pos.x-camera.x<<std::endl;
 
                     SDL_RenderCopy(renderer_, unit_texture, &source_texture, &on_screen_texture);
 
@@ -301,7 +307,7 @@ namespace sc2 {
 
                 SDL_Surface *map_image;
                 // gameinfo.map_name
-                std::string map_path = texture_forlder + std::string("map") + texture_extention;
+                std::string map_path = texture_folder + std::string("map") + texture_extention;
                 map_image = IMG_Load(map_path.c_str());
                 texture_map = SDL_CreateTextureFromSurface(renderer_, map_image);
                 SDL_FreeSurface(map_image);

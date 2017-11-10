@@ -96,7 +96,7 @@ RACE_UNITNAME
 TERRAN_SCV
 ```
 
-The folder is defined in the variable texture_forlder of sc2_rendere.cc
+The folder is defined in the variable texture_folder of sc2_rendere.cc
 
 Now also need a map.png in the folder
 
