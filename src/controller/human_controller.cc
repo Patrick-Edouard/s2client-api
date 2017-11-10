@@ -38,38 +38,59 @@ void DrawFeatureLayerHeightMap8BPP(const SC2APIProtocol::ImageData &image_data, 
 }
 
 class HumanController : public sc2::Agent {
+    sc2::Point2D* camera_position;
+
 public:
-    void ManageInput(SDL_Event e) {
-        switch (e.type) {
+    void ManageInput(SDL_Event event) {
+        const sc2::ObservationInterface *obs = Observation();
+
+        const Uint8 *keys = SDL_GetKeyboardState(NULL);
+
+        float delta_x = 0;
+        float delta_y = 0;
+        if (keys[SDL_SCANCODE_LEFT]) {
+            delta_x -= 0.1;
+        } else if (keys[SDL_SCANCODE_RIGHT]) {
+            delta_x += 0.1;
+        } else if (keys[SDL_SCANCODE_UP]) {
+            delta_y -= 0.1;
+        } else if (keys[SDL_SCANCODE_DOWN]) {
+            delta_y += 0.1;
+        }
+
+        if(delta_x != 0 || delta_y != 0) {
+
+            camera_position->x = camera_position->x+delta_x;
+            camera_position->y = camera_position->y+delta_y;
+
+        }
+
+        switch (event.type) {
             case SDL_MOUSEBUTTONDOWN :
 
-                const sc2::ObservationInterface *obs = Observation();
                 int x, y;
                 SDL_GetMouseState(&x, &y);
                 // TODO rescale correctly the position of the mouse according to the draw size of the window
-                sc2::Point2D target(x/kPixelDrawSize, y/kPixelDrawSize);
+                sc2::Point2D target(x / kPixelDrawSize, y / kPixelDrawSize);
 
                 for (const auto &unit : obs->GetUnits()) {
                     if (unit->alliance == sc2::Unit::Self) {
-
-                        //sc2::Point2D target(unit->pos.x+10, unit->pos.x+10);
                         Actions()->UnitCommand(unit, sc2::ABILITY_ID::MOVE, target);
                     }
 
                 }
 
                 break;
-            case SDL_KEYDOWN:
-
-                break;
 
             default:
                 break;
         }
+
     }
 
+    virtual
 
-    virtual void OnGameStart() final {
+    void OnGameStart() final {
         Debug()->DebugTextOut("Human");
         Debug()->SendDebug();
         sc2::renderer::Initialize("StarCraft II", 50, 50, 2 * kDrawSize, 2 * kDrawSize);
@@ -86,11 +107,14 @@ public:
 
         const sc2::ObservationInterface *obs = Observation();
 
+        // TODO draw the floor of the map in the back ground.
+        sc2::renderer::RenderBackGround(camera_position);
+
         // TODO see things to be done in the function
-        sc2::renderer::RenderUnits(obs);
+        sc2::renderer::RenderUnits(obs, camera_position);
         // TODO implement the HUD
         sc2::renderer::RenderHUD(obs);
-        // TODO draw the floor of the map in the back ground
+
 
         SDL_Event event = sc2::renderer::Render();
 
@@ -100,6 +124,7 @@ public:
     virtual void OnGameEnd() final {
         sc2::renderer::Shutdown();
     }
+
 };
 
 

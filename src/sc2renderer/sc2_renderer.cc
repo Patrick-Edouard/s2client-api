@@ -14,12 +14,16 @@
 
 namespace {
 
-    const char *const texture_forlder = "textures/";
+    const char *const texture_forlder = "/home/patrick-edouard/Projects/s2client-api/textures/";
 
     const char *const texture_extention = ".png";
 
+    SDL_Texture* texture_map;
 
     std::map<std::string, SDL_Texture *> textures;
+
+    int window_w;
+    int window_h;
 
     SDL_Window *window_;
     SDL_Renderer *renderer_;
@@ -41,6 +45,9 @@ namespace sc2 {
         void Initialize(const char *title, int x, int y, int w, int h, unsigned int flags) {
             int init_result = SDL_Init(SDL_INIT_VIDEO);
             assert(!init_result);
+
+            window_w = w;
+            window_h = h;
 
             window_ = SDL_CreateWindow(title, x, y, w, h, flags == 0 ? SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE : flags);
             assert(window_);
@@ -143,6 +150,30 @@ namespace sc2 {
             }
         }
 
+        Point2DI ConvertWorldToCamera(const GameInfo& game_info, const Point2D camera_world, const Point2D& world) {
+            float camera_size = game_info.options.feature_layer.camera_width;
+            int image_width = game_info.options.feature_layer.map_resolution_x;
+            int image_height = game_info.options.feature_layer.map_resolution_y;
+
+            // Pixels always cover a square amount of world space. The scale is determined
+            // by making the shortest axis of the camera match the requested camera_size.
+            float pixel_size = camera_size / std::min(image_width, image_height);
+            float image_width_world = pixel_size * image_width;
+            float image_height_world = pixel_size * image_height;
+
+            // Origin of world space is bottom left. Origin of image space is top left.
+            // The feature layer is centered around the camera target position.
+            float image_origin_x = camera_world.x - image_width_world / 2.0f;
+            float image_origin_y = camera_world.y + image_height_world / 2.0f;
+            float image_relative_x = world.x - image_origin_x;
+            float image_relative_y = image_origin_y - world.y;
+
+            int image_x = static_cast<int>(image_relative_x / pixel_size);
+            int image_y = static_cast<int>(image_relative_y / pixel_size);
+
+            return Point2DI(image_x, image_y);
+        }
+
 
         /**
          * To avoid loading the texture from disk each time, we load them into a cache.
@@ -157,8 +188,6 @@ namespace sc2 {
         SDL_Texture *LoadUnitTexture(const sc2::Unit *unit) {
 
             SDL_Texture *unit_texture;
-            SDL_Surface *unit_image;
-
             std::string unit_name = sc2::UnitTypeToName(unit->unit_type);
 
             unit_texture = textures[unit_name];
@@ -167,6 +196,7 @@ namespace sc2 {
                 return unit_texture;
             }
 
+            SDL_Surface *unit_image;
             std::string unit_image_path = texture_forlder + unit_name + texture_extention;
             unit_image = IMG_Load(unit_image_path.c_str());
             unit_texture = SDL_CreateTextureFromSurface(renderer_, unit_image);
@@ -181,7 +211,7 @@ namespace sc2 {
         /**
          * Render all the units in the observation thingy to the screem
          */
-        void RenderUnits(const sc2::ObservationInterface *obs) {
+        void RenderUnits(const sc2::ObservationInterface *obs, const sc2::Point2D *camera_pos) {
             assert(renderer_);
             assert(window_);
 
@@ -195,7 +225,6 @@ namespace sc2 {
             // TODO Display HP / shield / energy above the units
 
             for (const auto &unit : obs->GetUnits()) {
-                obs->GetCameraPos();
 
                 if (unit->alliance == sc2::Unit::Self) {
                     SDL_Texture *unit_texture = LoadUnitTexture(unit);
@@ -227,15 +256,19 @@ namespace sc2 {
                     //float sub_texture_index = sub_texture_size * (unit->facing * 8 % (3.14*2) );
                     //float sub_texture_size = texture_w / 8;
                     float sub_texture_index = 0;
-                    int on_screen_w = 100 * unit->radius;
+                    int on_screen_w = obs->GetGameInfo().width * unit->radius;
                     int on_screen_h = texture_h * on_screen_w / texture_w;
+
+                    Point2DI camera = ConvertWorldToCamera(obs->GetGameInfo(), *camera_pos, Point2D(unit->pos.x, unit->pos.y));
 
                     // rescale the source texture for rendering
                     SDL_Rect source_texture = {sub_texture_index, 0, texture_w, texture_h};
-                    SDL_Rect on_screen_texture = {unit->pos.x, unit->pos.y, on_screen_w, on_screen_h};
+                    SDL_Rect on_screen_texture = {camera.x, camera.y, on_screen_w, on_screen_h};
+
+                    std::cout<<"cam"<<camera_pos->x<<"unit"<<unit->pos.x<<"onscreenpos"<<unit->pos.x-camera_pos->x<<std::endl;
+                    std::cout<<"world to cam"<<camera.x<<"unit"<<unit->pos.x<<"onscreenpos"<<unit->pos.x-camera.x<<std::endl;
 
                     SDL_RenderCopy(renderer_, unit_texture, &source_texture, &on_screen_texture);
-
 
                 } else if (unit->alliance == sc2::Unit::Enemy) {
                     // render in different color?
@@ -255,11 +288,30 @@ namespace sc2 {
 
 
 /*
-        std::cout << "\nPlayerID:" << client.Observation()->GetPlayerID();
-        std::cout << "\nMinerals:" << client.Observation()->GetMinerals();
+        std::cout << "\nPlayerID:" << obs->GetPlayerID();
+        std::cout << "\nMinerals:" << obs->GetMinerals();
 */
 
 
+        }
+
+        void RenderBackGround(const sc2::Point2D *camera_pos) {
+
+            if(texture_map == nullptr) {
+
+                SDL_Surface *map_image;
+                // gameinfo.map_name
+                std::string map_path = texture_forlder + std::string("map") + texture_extention;
+                map_image = IMG_Load(map_path.c_str());
+                texture_map = SDL_CreateTextureFromSurface(renderer_, map_image);
+                SDL_FreeSurface(map_image);
+
+            }
+
+            SDL_Rect source_texture = {camera_pos->x, camera_pos->y, 180, 144};
+            SDL_Rect on_screen_texture = {0, 0, window_w, window_h/2};
+
+            SDL_RenderCopy(renderer_, texture_map, &source_texture, &on_screen_texture);
         }
 
         SDL_Event Render() {
