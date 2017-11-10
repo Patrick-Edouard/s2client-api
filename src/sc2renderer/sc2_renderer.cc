@@ -156,10 +156,12 @@ namespace sc2 {
             }
         }
 
-        Point2DI ConvertWorldToCamera(const GameInfo& game_info, const Point2D camera_world, const Point2D& world) {
+        Point2DI ConvertWorldToCamera(const GameInfo& game_info, const Point2D camera_world, const Point2D& unit_pos) {
             float camera_size = game_info.options.feature_layer.camera_width;
             int image_width = game_info.options.feature_layer.map_resolution_x;
             int image_height = game_info.options.feature_layer.map_resolution_y;
+            image_width=180;
+            image_height=144;
 
             // Pixels always cover a square amount of world space. The scale is determined
             // by making the shortest axis of the camera match the requested camera_size.
@@ -169,10 +171,10 @@ namespace sc2 {
 
             // Origin of world space is bottom left. Origin of image space is top left.
             // The feature layer is centered around the camera target position.
-            float image_origin_x = camera_world.x - image_width_world / 2.0f;
-            float image_origin_y = camera_world.y + image_height_world / 2.0f;
-            float image_relative_x = world.x - image_origin_x;
-            float image_relative_y = image_origin_y - world.y;
+            float image_origin_x = camera_world.x - image_width_world;
+            float image_origin_y = camera_world.y + image_height_world;
+            float image_relative_x = unit_pos.x - image_origin_x;
+            float image_relative_y = unit_pos.y - image_origin_y;
 
             int image_x = static_cast<int>(image_relative_x / pixel_size);
             int image_y = static_cast<int>(image_relative_y / pixel_size);
@@ -265,11 +267,11 @@ namespace sc2 {
                     int on_screen_w = obs->GetGameInfo().width * unit->radius;
                     int on_screen_h = texture_h * on_screen_w / texture_w;
 
-                    Point2DI camera = ConvertWorldToCamera(obs->GetGameInfo(), *camera_pos, Point2D(unit->pos.x, unit->pos.y));
+                    Point2DI on_screen_unit_pos = ConvertWorldToCamera(obs->GetGameInfo(), *camera_pos, Point2D(unit->pos.x, unit->pos.y));
 
                     // rescale the source texture for rendering
                     SDL_Rect source_texture = {sub_texture_index, 0, texture_w, texture_h};
-                    SDL_Rect on_screen_texture = {camera.x, camera.y, on_screen_w, on_screen_h};
+                    SDL_Rect on_screen_texture = {on_screen_unit_pos.x, on_screen_unit_pos.y, on_screen_w, on_screen_h};
 
                     //std::cout<<"cam"<<camera_pos->x<<"unit"<<unit->pos.x<<"onscreenpos"<<unit->pos.x-camera_pos->x<<std::endl;
                     //std::cout<<"world to cam"<<camera.x<<"unit"<<unit->pos.x<<"onscreenpos"<<unit->pos.x-camera.x<<std::endl;
@@ -314,7 +316,7 @@ namespace sc2 {
 
             }
 
-            SDL_Rect source_texture = {camera_pos->x, camera_pos->y, 180, 144};
+            SDL_Rect source_texture = {camera_pos->x, camera_pos->y, 180, 144/2};
             SDL_Rect on_screen_texture = {0, 0, window_w, window_h/2};
 
             SDL_RenderCopy(renderer_, texture_map, &source_texture, &on_screen_texture);

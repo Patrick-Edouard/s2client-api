@@ -93,7 +93,7 @@ public:
     void OnGameStart() final {
         Debug()->DebugTextOut("Human");
         Debug()->SendDebug();
-        sc2::renderer::Initialize("StarCraft II", 50, 50, 2 * kDrawSize, 2 * kDrawSize);
+        sc2::renderer::Initialize("StarCraft II", 0, 0, 2 * kDrawSize, 2 * kDrawSize);
     }
 
     virtual void OnStep() final {
